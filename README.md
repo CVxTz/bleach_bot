@@ -15,7 +15,7 @@ TOKEN=YOUR_TOKEN
 
 ## Run:
 ```
-wget url to onnx
-wget url to tokenizer
-docker-compose up
+wget https://github.com/CVxTz/bleach_bot/releases/download/v1/toxicity_model.onnx -P ./data/
+wget https://github.com/CVxTz/bleach_bot/releases/download/v1/tokenizer.json -P ./data/
+docker-compose up --build
 ```
