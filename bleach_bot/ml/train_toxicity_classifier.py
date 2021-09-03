@@ -1,5 +1,6 @@
 import random
 from functools import partial
+from pathlib import Path
 
 import pandas as pd
 import pytorch_lightning as pl
@@ -28,7 +29,7 @@ class Dataset(torch.utils.data.Dataset):
         return self.n_samples // 20  # Sub sample for smaller epochs
 
     def __getitem__(self, _):
-        if random.random() > 0.5:  # Each batch has 50% positives and 50% negatives.
+        if random.random() > 0.7:  # Each batch has 30% positives and 70% negatives.
             idx = random.choice(self.positives)
         else:
             idx = random.choice(self.negatives)
@@ -41,18 +42,18 @@ class Dataset(torch.utils.data.Dataset):
 
 
 def generate_batch(data_batch, pad_idx):
-    X, Y = [], []
+    samples_x, samples_y = [], []
     for (x, y) in data_batch:
-        X.append(x)
-        Y.append(y)
+        samples_x.append(x)
+        samples_y.append(y)
 
-    X = pad_sequence(X, padding_value=pad_idx, batch_first=True)
+    samples_x = pad_sequence(samples_x, padding_value=pad_idx, batch_first=True)
 
-    X = X[:, :MAX_LEN]
+    samples_x = samples_x[:, :MAX_LEN]
 
-    Y = torch.tensor(Y, dtype=torch.float)
+    samples_y = torch.tensor(samples_y, dtype=torch.float)
 
-    return X, Y
+    return samples_x, samples_y
 
 
 if __name__ == "__main__":
@@ -64,7 +65,8 @@ if __name__ == "__main__":
     parser.add_argument("--epochs", default=200)
     parser.add_argument("--init_model_path", default=None)
     parser.add_argument("--tokenizer", default="../../data/tokenizer.json")
-    parser.add_argument("--data", default="../../data/train.csv")
+    parser.add_argument("--data_path", default="../../data/train.csv")
+    parser.add_argument("--negative_examples_path", default="../../data/negative_examples.csv")
     parser.add_argument("--out_folder", default="../../data/")
 
     args = parser.parse_args()
@@ -77,7 +79,10 @@ if __name__ == "__main__":
     init_model_path = args.init_model_path
     tokenizer = Tokenizer.from_file(args.tokenizer)
 
-    data = pd.read_csv(args.data)
+    data_path = args.data_path
+    negative_examples_path = args.negative_examples_path
+
+    data = pd.read_csv(data_path)
     data["comment_text"] = data.comment_text.astype(str)
 
     data["label"] = (
@@ -87,11 +92,19 @@ if __name__ == "__main__":
         > 0.5
     ).astype(int)
 
+    data = data[["comment_text", "label"]]
+
+    if Path(negative_examples_path).exists():
+        negative_examples = pd.read_csv(negative_examples_path)
+        data = pd.concat([data, negative_examples], ignore_index=True)
+
+    data["comment_text"] = data.comment_text.astype(str)
+
     print(data[["comment_text", "label"]].head(10))
     print(f"Proportion of positives : {round(data.label.mean() * 100)}%")
 
-    train_val, test = train_test_split(data, test_size=0.1, random_state=1337)
-    train, val = train_test_split(train_val, test_size=0.1, random_state=1337)
+    train_val, test = train_test_split(data, test_size=0.1, random_state=1337, stratify=data.label)
+    train, val = train_test_split(train_val, test_size=0.1, random_state=1337, stratify=train_val.label)
 
     train_data = Dataset(df=train, hf_tokenizer=tokenizer)
     valid_data = Dataset(df=val, hf_tokenizer=tokenizer)

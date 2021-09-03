@@ -16,7 +16,7 @@ class TextBinaryClassifier(pl.LightningModule):
     def __init__(
         self,
         vocab_size,
-        channels=128,
+        channels=256,
         dropout=0.4,
         lr=1e-4,
     ):
