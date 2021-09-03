@@ -66,7 +66,9 @@ if __name__ == "__main__":
     parser.add_argument("--init_model_path", default=None)
     parser.add_argument("--tokenizer", default="../../data/tokenizer.json")
     parser.add_argument("--data_path", default="../../data/train.csv")
-    parser.add_argument("--negative_examples_path", default="../../data/negative_examples.csv")
+    # parser.add_argument(
+    #     "--negative_examples_path", default="../../data/negative_examples.csv"
+    # )
     parser.add_argument("--out_folder", default="../../data/")
 
     args = parser.parse_args()
@@ -80,7 +82,7 @@ if __name__ == "__main__":
     tokenizer = Tokenizer.from_file(args.tokenizer)
 
     data_path = args.data_path
-    negative_examples_path = args.negative_examples_path
+    # negative_examples_path = args.negative_examples_path
 
     data = pd.read_csv(data_path)
     data["comment_text"] = data.comment_text.astype(str)
@@ -94,17 +96,21 @@ if __name__ == "__main__":
 
     data = data[["comment_text", "label"]]
 
-    if Path(negative_examples_path).exists():
-        negative_examples = pd.read_csv(negative_examples_path)
-        data = pd.concat([data, negative_examples], ignore_index=True)
+    # if Path(negative_examples_path).exists():
+    #     negative_examples = pd.read_csv(negative_examples_path)
+    #     data = pd.concat([data, negative_examples], ignore_index=True)
 
     data["comment_text"] = data.comment_text.astype(str)
 
     print(data[["comment_text", "label"]].head(10))
     print(f"Proportion of positives : {round(data.label.mean() * 100)}%")
 
-    train_val, test = train_test_split(data, test_size=0.1, random_state=1337, stratify=data.label)
-    train, val = train_test_split(train_val, test_size=0.1, random_state=1337, stratify=train_val.label)
+    train_val, test = train_test_split(
+        data, test_size=0.1, random_state=1337, stratify=data.label
+    )
+    train, val = train_test_split(
+        train_val, test_size=0.1, random_state=1337, stratify=train_val.label
+    )
 
     train_data = Dataset(df=train, hf_tokenizer=tokenizer)
     valid_data = Dataset(df=val, hf_tokenizer=tokenizer)

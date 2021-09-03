@@ -27,7 +27,7 @@ if __name__ == "__main__":
     tokenizer = Tokenizer.from_file(args.tokenizer)
     filepath = args.output_path
 
-    text = "I hate ice cream"
+    text = "f***k youu"
 
     model = TextBinaryClassifier(
         vocab_size=tokenizer.get_vocab_size(),

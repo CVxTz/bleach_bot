@@ -38,11 +38,11 @@ async def on_message(message):
 
     pika_client = predictor_client.pika_client
 
-    scored = pika_client.call(message.content)
+    scored = pika_client.call(message.content)  # Use aio-pika ?
     logger.info(f"Score: {scored.score} for message: {message.content[:20]}...")
 
     if scored.score > 0.8:
-        await message.edit(content="[DELETED]")
+        await message.delete()
 
 
 client.run(TOKEN)

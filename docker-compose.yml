@@ -33,6 +33,7 @@ services:
       dockerfile: Dockerfile-bot
     environment:
       TOKEN: $TOKEN
+      RABBIT_URL: 'amqp://rabbitmq?connection_attempts=5&retry_delay=5'
     networks:
       - network
     depends_on:
