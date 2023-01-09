@@ -1,6 +1,6 @@
 import math
 import numpy as np
-import onnxruntime as rt
+import onnxruntime
 from tokenizers import Tokenizer
 
 
@@ -10,7 +10,7 @@ def sigmoid(x):
 
 class TextAudit:
     def __init__(self):
-        self.inference_session = rt.InferenceSession("data/toxicity_model.onnx")
+        self.inference_session = onnxruntime.InferenceSession("data/toxicity_model.onnx")
         self.tokenizer = Tokenizer.from_file("data/tokenizer.json")
 
     def predict(self, text):
